@@ -16,7 +16,7 @@ thai_large_font =("TH Niramit AS", 37)
 thai_font = ("TH Niramit AS", 23)
 eng_font = ("Time New Roman",12)
 
-terminate_app = True
+terminate_app_flag = True
 # ============= set path to files ==================================================================================
 current_path = Path(__file__).resolve().parents[0]
 logging_file_path = Path(current_path, 'template.log')
@@ -44,7 +44,7 @@ logger.addHandler(consoleHandler)
 
 class tkinterApp(tk.Tk):
     def __init__(self, *args, **kwargs):
-        global terminate_app
+        global terminate_app_flag
         
         tk.Tk.__init__(self, *args, **kwargs)
         self.resizable(False, False)
@@ -65,7 +65,7 @@ class tkinterApp(tk.Tk):
         self.configuration_params = read_yml(yml_config_path)
         self.all_query_library = read_yml(yml_query_path)
         if self.configuration_params == None or self.all_query_library == None:
-            terminate_app = True
+            terminate_app_flag = True
             logging.info('please add yml files to current folder')
             self.show_frame(ErrorPage)
         else:
@@ -102,7 +102,7 @@ class LoginPage(tk.Frame):
         lp_password_entry.grid(row=4, column = 0,padx=50,pady=10,sticky=tk.W)
         lp_login_button.grid(row=5, column = 0,padx=50,pady=(20,70),sticky=tk.W)
         
-        if terminate_app:
+        if terminate_app_flag:
             logging.debug('Terminate app')
             self.after(1000,self.run_working_page)
         
@@ -166,7 +166,7 @@ class WorkingPage(tk.Frame):
         db_manger_frame = tk.Frame(master= self.setup_server_db_frame,bg="#FFFFFF")
         db_manger_frame.grid(row=0,column=0)
         treeview_style = ttk.Style()
-        treeview_style.configure("custom.Treeview", highlightthickness=10, bd=10, font=('TH Niramit AS', 17))
+        treeview_style.configure("custom.Treeview", highlightthickness=10, bd=10, font=('Time New Roman', 9))
         treeview_style.configure("custom.Treeview.Heading", font=('TH Niramit AS', 16,'bold'))
         treeview_style.layout("custom.Treeview", [('custom.Treeview.treearea', {'sticky': 'nswe'})])
         treeview_style.configure("custom.Treeview", background="#EEFFFF",fieldbackground="black", foreground="black")
@@ -187,22 +187,24 @@ class WorkingPage(tk.Frame):
         dm_right_bottom_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
         dm_right_bottom_frame.grid(row=1,column=1,padx=10,pady=10,sticky=tk.NW)
     #===================================== DM TREE VIEW ====================================
-        dm_experiment_summary_treeview_colum = ("order_number","table_name", "field_name","nullable","key","default","extra")
+        dm_experiment_summary_treeview_colum = ("order_number","table_name", "field_name","type","nullable","key","default","extra")
         self.dm_experiment_summary_treeview = ttk.Treeview(master=dm_top_frame, columns=dm_experiment_summary_treeview_colum, style="custom.Treeview", show='headings',height=20,selectmode="browse",)
         self.dm_experiment_summary_treeview.heading("order_number",text="ลำดับ")
-        self.dm_experiment_summary_treeview.column("order_number", minwidth=10, width=100,)
+        self.dm_experiment_summary_treeview.column("order_number", width=100,anchor=tk.CENTER)
         self.dm_experiment_summary_treeview.heading("table_name",text="ชื่อตาราง")
-        self.dm_experiment_summary_treeview.column("table_name", minwidth=10, width=250,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.column("table_name", width=200,anchor=tk.CENTER)
         self.dm_experiment_summary_treeview.heading("field_name",text="ชื่อ Field")
-        self.dm_experiment_summary_treeview.column("field_name", minwidth=10, width=250,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.column("field_name", width=200,anchor=tk.CENTER)
+        self.dm_experiment_summary_treeview.heading("type",text="data type")
+        self.dm_experiment_summary_treeview.column("type", width=100,anchor=tk.CENTER)
         self.dm_experiment_summary_treeview.heading("nullable",text="Null")
-        self.dm_experiment_summary_treeview.column("nullable", minwidth=10, width=80,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.column("nullable", width=80,anchor=tk.CENTER)
         self.dm_experiment_summary_treeview.heading("key",text="Key")
-        self.dm_experiment_summary_treeview.column("key", minwidth=10, width=130,stretch=tk.NO) 
+        self.dm_experiment_summary_treeview.column("key", width=130,anchor=tk.CENTER) 
         self.dm_experiment_summary_treeview.heading("default",text="Default")
-        self.dm_experiment_summary_treeview.column("default", minwidth=10, width=250,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.column("default", width=250,anchor=tk.CENTER)
         self.dm_experiment_summary_treeview.heading("extra",text="Extra")
-        self.dm_experiment_summary_treeview.column("extra", minwidth=10, width=270,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.column("extra", width=200,anchor=tk.CENTER)
         self.dm_experiment_summary_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
 
         self.dm_experiment_summary_CTklabel = customtkinter.CTkLabel(master=dm_top_frame,text="ตารางในฐานข้อมูล",bg_color="#FFFFFF",font=("TH Niramit AS", 23,'bold'))
@@ -577,12 +579,45 @@ class WorkingPage(tk.Frame):
             logging.debug("Stock manager tab is activated")
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Setup Server Database'):
             logging.debug("Setup Server Database tab is activated")
+            self.read_database_tables_from_server()
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Setup PC'):
             logging.debug("Setup PC tab is activated")
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Logout'):
             logging.debug("Logout tab is activated")
 
-    
+    def read_database_tables_from_server(self):
+        # create connection and add detail to treeview
+        server_host = self.controller.configuration_params['server_detail']['address']
+        server_port = self.controller.configuration_params['server_detail']['port']
+        database_name = self.controller.configuration_params['server_detail']['database']
+        user_account = self.controller.configuration_params['admin_login']['username']
+        user_password = self.controller.configuration_params['admin_login']['password']
+
+        try:
+            main_db = mysql.connector.connect(  host = server_host,
+                                                port = int(server_port),
+                                                database = database_name,
+                                                user = user_account,
+                                                password = user_password     )
+            main_cursor = main_db.cursor()
+            query_string = "Show tables;"
+            main_cursor.execute(query_string)
+            table_names = main_cursor.fetchall()
+
+            for order_index,current_table in enumerate(table_names):
+                query_string = "DESCRIBE " + database_name + "." + current_table[0]
+                main_cursor.execute(query_string)
+                current_table_detail = main_cursor.fetchall()
+                for field_index,field_detail in enumerate(current_table_detail):
+                    if field_index == 0:
+                        self.dm_experiment_summary_treeview.insert("",'end',values=(str(order_index),current_table,field_detail[0],field_detail[1],field_detail[2],field_detail[3],field_detail[4],field_detail[5]))
+                    else:
+                        self.dm_experiment_summary_treeview.insert("",'end',values=("","",field_detail[0],field_detail[1],field_detail[2],field_detail[3],field_detail[4],field_detail[5]))
+            main_cursor.close()
+            main_db.close()
+        except Exception as Ex:
+            logging.error("Error: %s"%(Ex))
+
     def on_mouse_press_cenvas(self,event):
         if self.previous_x and self.previous_y:
             self.um_signature_cavas.create_line((self.previous_x, self.previous_y, event.x, event.y), width=4)
@@ -606,7 +641,9 @@ class ErrorPage(tk.Frame):
         error_main_frame.place(relx=0.5, rely=0.5,anchor=tk.CENTER)
 
         error_message_label = tk.Label(error_main_frame,text="โปรดตรวจสอบ yml ไฟล์",background="#FFFFFF",font=thai_font)
+        error_button = customtkinter.CTkButton(master=error_main_frame,text="OK")
         error_message_label.grid(row=0,column=0)
+        error_button.grid(row=0,column=0)
         
 
 if __name__ == "__main__":
