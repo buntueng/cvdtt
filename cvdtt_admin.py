@@ -18,6 +18,7 @@ eng_font = ("Time New Roman",12)
 # ============= set path to files ==================================================================================
 current_path = Path(__file__).resolve().parents[0]
 logging_file_path = Path(current_path, 'template.log')
+yml_file_path = Path(current_path, 'config.yml')
 
 #===================== setup logging module =========================================================================
 logger = logging.getLogger()
@@ -112,8 +113,11 @@ class WorkingPage(tk.Frame):
         self.setup_server_db_frame =tk.Frame(self.notebook, bg='#FFFFFF')
         self.logout_frame =tk.Frame(self.notebook, bg='#FFFFFF')
 
-        self.notebook.add(self.user_manager_frame, text='User Manager')
-        self.notebook.add(self.job_manager_frame, text='Job Manager')
+        self.notebook_tab_dictionary = {"User Manager":self.user_manager_frame,
+                                        'Job Manager':self.job_manager_frame,}
+
+        self.notebook.add(self.notebook_tab_dictionary["User Manager"], text="User Manager")
+        self.notebook.add(self.notebook_tab_dictionary["Job Manager"], text='Job Manager')
         self.notebook.add(self.lab_manager_frame, text='Lab Manager')
         self.notebook.add(self.experiment_manager_frame, text= "Experiment manager")
         # self.notebook.add(self.stock_manager_frame, text='Stock Manager')
@@ -124,7 +128,6 @@ class WorkingPage(tk.Frame):
         self.notebook.grid(row=0, column=0,sticky='we')
         self.notebook.bind('<<NotebookTabChanged>>',self.process_notebook_tab_change)
 
-        logging.debug("running app")
         self.init_job_manager_tab()
         self.init_user_manager_tab()
         self.init_lab_manager()
@@ -533,8 +536,11 @@ class WorkingPage(tk.Frame):
     # ============================================ events handles =========================================
     def process_notebook_tab_change(self,event):
         active_tab_index = self.notebook.index(self.notebook.select())
-        if active_tab_index == 5:
-            self.controller.show_frame(LoginPage)
+        if active_tab_index == list(self.notebook_tab_dictionary.keys()).index("User Manager"):
+            logging.debug("User manager tab is activated")
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index("Job Manager"):
+            logging.debug("Job manager tab is activated")
+
 
     
     def on_mouse_press_cenvas(self,event):
