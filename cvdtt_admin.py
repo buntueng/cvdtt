@@ -3,6 +3,7 @@ from pathlib import Path
 import tkinter as tk
 import customtkinter
 import yaml
+from yaml.loader import SafeLoader
 import logging
 import sqlite3
 from tkinter.ttk import Notebook, Style
@@ -15,11 +16,19 @@ thai_large_font =("TH Niramit AS", 37)
 thai_font = ("TH Niramit AS", 23)
 eng_font = ("Time New Roman",12)
 
+terminate_app = True
 # ============= set path to files ==================================================================================
 current_path = Path(__file__).resolve().parents[0]
 logging_file_path = Path(current_path, 'template.log')
-yml_file_path = Path(current_path, 'config.yml')
-
+yml_config_path = Path(current_path, 'config.yml')
+yml_query_path = Path(current_path, 'main_query.yml')
+# =========================== sub program ==========================================================================
+def read_yml(file_path):
+    yml_params = None
+    if file_path.is_file():
+        with open(file_path) as yml_file:
+            yml_params = yaml.load(yml_file, Loader=SafeLoader)
+    return yml_params
 #===================== setup logging module =========================================================================
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -35,6 +44,8 @@ logger.addHandler(consoleHandler)
 
 class tkinterApp(tk.Tk):
     def __init__(self, *args, **kwargs):
+        global terminate_app
+        
         tk.Tk.__init__(self, *args, **kwargs)
         self.resizable(False, False)
         
@@ -46,20 +57,27 @@ class tkinterApp(tk.Tk):
         container.grid_columnconfigure(0, weight = 1)
 
         self.frames = {}
-        for F in (LoginPage, WorkingPage):
+        for F in (LoginPage, WorkingPage, ErrorPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row = 0, column = 0, sticky ="nsew")
-        self.show_frame(LoginPage)
 
+        self.configuration_params = read_yml(yml_config_path)
+        self.all_query_library = read_yml(yml_query_path)
+        if self.configuration_params == None or self.all_query_library == None:
+            terminate_app = True
+            logging.info('please add yml files to current folder')
+            self.show_frame(ErrorPage)
+        else:
+            self.show_frame(LoginPage)
         # =========== event binding ===========
-        self.bind('<Return>', self.enter_pressed_loginpage)
+        self.bind('<Return>', self.enter_pressed)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
 
-    def enter_pressed_loginpage(self,event):
+    def enter_pressed(self,event):
         logging.debug(event)
 
 class LoginPage(tk.Frame):
@@ -83,8 +101,11 @@ class LoginPage(tk.Frame):
         lp_password_label.grid(row=3, column = 0,padx=50,sticky=tk.W)
         lp_password_entry.grid(row=4, column = 0,padx=50,pady=10,sticky=tk.W)
         lp_login_button.grid(row=5, column = 0,padx=50,pady=(20,70),sticky=tk.W)
-        # bt = tk.Button(login)
-        self.after(1000,self.run_working_page)
+        
+        if terminate_app:
+            logging.debug('Terminate app')
+            self.after(1000,self.run_working_page)
+        
     
     def run_working_page(self):
         self.controller.show_frame(WorkingPage)
@@ -113,17 +134,24 @@ class WorkingPage(tk.Frame):
         self.setup_server_db_frame =tk.Frame(self.notebook, bg='#FFFFFF')
         self.logout_frame =tk.Frame(self.notebook, bg='#FFFFFF')
 
-        self.notebook_tab_dictionary = {"User Manager":self.user_manager_frame,
-                                        'Job Manager':self.job_manager_frame,}
+        self.notebook_tab_dictionary = {'User Manager':self.user_manager_frame,
+                                        'Job Manager':self.job_manager_frame,
+                                        'Lab Manager':self.lab_manager_frame,
+                                        'Experiment Manager':self.experiment_manager_frame,
+                                        'Stock Manager':self.stock_manager_frame,
+                                        'Setup Server Database':self.setup_server_db_frame,
+                                        'Setup PC':self.setup_pc_frame,
+                                        'Logout':self.logout_frame,
+                                        }
 
-        self.notebook.add(self.notebook_tab_dictionary["User Manager"], text="User Manager")
-        self.notebook.add(self.notebook_tab_dictionary["Job Manager"], text='Job Manager')
-        self.notebook.add(self.lab_manager_frame, text='Lab Manager')
-        self.notebook.add(self.experiment_manager_frame, text= "Experiment manager")
-        # self.notebook.add(self.stock_manager_frame, text='Stock Manager')
-        self.notebook.add(self.setup_server_db_frame, text='Setup Server Database')
-        # self.notebook.add(self.setup_pc_frame, text='Setup PC')
-        self.notebook.add(self.logout_frame, text='Logout')
+        self.notebook.add(self.notebook_tab_dictionary['User Manager'], text='User Manager')
+        self.notebook.add(self.notebook_tab_dictionary['Job Manager'], text='Job Manager')
+        self.notebook.add(self.notebook_tab_dictionary['Lab Manager'], text='Lab Manager')
+        self.notebook.add(self.notebook_tab_dictionary['Experiment Manager'], text= 'Experiment Manager')
+        self.notebook.add(self.notebook_tab_dictionary['Stock Manager'], text='Stock Manager')
+        self.notebook.add(self.notebook_tab_dictionary['Setup Server Database'], text='Setup Server Database')
+        self.notebook.add(self.notebook_tab_dictionary['Setup PC'], text='Setup PC')
+        self.notebook.add(self.notebook_tab_dictionary['Logout'], text='Logout')
 
         self.notebook.grid(row=0, column=0,sticky='we')
         self.notebook.bind('<<NotebookTabChanged>>',self.process_notebook_tab_change)
@@ -535,12 +563,24 @@ class WorkingPage(tk.Frame):
         
     # ============================================ events handles =========================================
     def process_notebook_tab_change(self,event):
+        #=============== tabs should order as defined in dictionary ============================
         active_tab_index = self.notebook.index(self.notebook.select())
-        if active_tab_index == list(self.notebook_tab_dictionary.keys()).index("User Manager"):
+        if active_tab_index == list(self.notebook_tab_dictionary.keys()).index('User Manager'):
             logging.debug("User manager tab is activated")
-        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index("Job Manager"):
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Job Manager'):
             logging.debug("Job manager tab is activated")
-
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Lab Manager'):
+            logging.debug("Lab manager tab is activated")
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Experiment Manager'):
+            logging.debug("Experiment manager tab is activated")
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Stock Manager'):
+            logging.debug("Stock manager tab is activated")
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Setup Server Database'):
+            logging.debug("Setup Server Database tab is activated")
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Setup PC'):
+            logging.debug("Setup PC tab is activated")
+        elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Logout'):
+            logging.debug("Logout tab is activated")
 
     
     def on_mouse_press_cenvas(self,event):
@@ -556,6 +596,18 @@ class WorkingPage(tk.Frame):
 
     def jm_search_button_pressed(self):
         logging.debug('jm button pressed')
+
+class ErrorPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        error_main_frame = customtkinter.CTkFrame(self, fg_color="#FFFFFF",width=200,height=200,corner_radius=20)
+        error_main_frame.place(relx=0.5, rely=0.5,anchor=tk.CENTER)
+
+        error_message_label = tk.Label(error_main_frame,text="โปรดตรวจสอบ yml ไฟล์",background="#FFFFFF",font=thai_font)
+        error_message_label.grid(row=0,column=0)
+        
 
 if __name__ == "__main__":
     main_app = tkinterApp()
