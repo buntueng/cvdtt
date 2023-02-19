@@ -199,10 +199,6 @@ class WorkingPage(tk.Frame):
         self.em_delete_experiment_button.grid(row=0,column=0,sticky=tk.W)
         self.em_add_experiment_button.grid(row=1,column=0,pady = 10,sticky=tk.W)
         self.em_update_experiment_buttom.grid(row=2,column=0,sticky=tk.W)
-    # =========================== lab manager tab ====================================
-    def init_lab_manager(self):
-        lm_frame = tk.Frame(self.lab_manager_frame,bg="#FFFFFF")
-        lm_frame.grid(row=0,column=0,padx=10,pady=10)
 
     # =========================== job manager tab ====================================
     def init_job_manager_tab(self):
@@ -397,8 +393,59 @@ class WorkingPage(tk.Frame):
         self.um_signature_cavas.bind('<ButtonRelease-1>', self.disconnect_canva_line)
 
     # ============================ lab manager tab ===================================
-    def init_lab_manager_tab(self):
-        pass
+    def init_lab_manager(self):
+        treeview_style = ttk.Style()
+        treeview_style.configure("custom.Treeview", highlightthickness=10, bd=10, font=('TH Niramit AS', 17))
+        treeview_style.configure("custom.Treeview.Heading", font=('TH Niramit AS', 16,'bold'))
+        treeview_style.layout("custom.Treeview", [('custom.Treeview.treearea', {'sticky': 'nswe'})])
+        treeview_style.configure("custom.Treeview", background="#EEFFFF",fieldbackground="black", foreground="black")
+        treeview_style.map("custom.Treeview", background=[("selected", "green")])
+
+        lm_top_frame = tk.Frame(self.lab_manager_frame,bg="#FFFFFF")
+        lm_top_frame.grid(row=0,column=0,padx=10,pady=10,sticky=tk.W)
+
+        lm_left_frame = tk.Frame(self.lab_manager_frame,bg="#FFFFFF")
+        lm_left_frame.grid(row=1,column=0,padx=10,pady=10,sticky=tk.W)
+        lm_right_frame = tk.Frame(self.lab_manager_frame,bg="#FFFFFF")
+        lm_right_frame.grid(row=1,column=0,padx=10,pady=10,sticky=tk.NE)
+        #=========================================================== Top frame ===============================================
+
+        self.lm_lab_summary_label = customtkinter.CTkLabel(master=lm_top_frame,text="สรุปรายชื่อห้องปฏิบัติการ",bg_color="#FFFFFF",font=thai_font)
+        self.lm_lab_summary_label.grid(row=0,column=0,sticky=tk.W)
+        #========================= tree view ========================================
+        lm_lab_summary_treeview_colum = ("order_number","lab_name", "comment",)
+        self.lm_lab_summary_treeview = ttk.Treeview(master=lm_top_frame, columns=lm_lab_summary_treeview_colum, style="custom.Treeview", show='headings',height=20,selectmode="browse",)
+        self.lm_lab_summary_treeview.heading("order_number",text="ลำดับ")
+        self.lm_lab_summary_treeview.column("order_number", minwidth=10, width=100,)
+        self.lm_lab_summary_treeview.heading("lab_name",text="ชื่อห้องปฏิบัติการ")
+        self.lm_lab_summary_treeview.column("lab_name", minwidth=10, width=500,stretch=tk.NO)
+        self.lm_lab_summary_treeview.heading("comment",text="หมายเหตุ")
+        self.lm_lab_summary_treeview.column("comment", minwidth=10, width=1000,stretch=tk.NO)
+
+
+        self.lm_lab_summary_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
+        #========================== DEBUG =========================================
+        self.lm_lab_summary_treeview.insert("",'end',values=('1','Lab_1','OKKKKKKKKKKKKKKKKKKK'))
+        self.lm_lab_summary_treeview.insert("",'end',values=('2','Lab_2','YOOOOOOOOOOOOOOOOOOO'))
+        #===============================================Left frame =====================================================================
+        self.lm_laboratory_data_label = customtkinter.CTkLabel(master=lm_left_frame,text="ข้อมูลห้องปฏิบัติการ",bg_color="#FFFFFF",font=("TH Niramit AS", 23,'bold'))
+        self.lm_lab_name_label = customtkinter.CTkLabel(master=lm_left_frame,text="ห้องปฏิบัติการ",bg_color="#FFFFFF",font=thai_font)
+        self.lm_lab_comment_label = customtkinter.CTkLabel(master=lm_left_frame,text="หมายเหตุ",bg_color="#FFFFFF",font=thai_font)
+        self.lm_lab_name_entry = customtkinter.CTkEntry(master=lm_left_frame,width=550,font=thai_font)
+        self.lm_lab_comment_CTkTextbox = customtkinter.CTkTextbox(master=lm_left_frame,width=550,height=150,font=thai_font)
+
+        self.lm_laboratory_data_label.grid(row=0,column=0,sticky=tk.W)
+        self.lm_lab_name_label.grid(row=1,column=0,padx=10,sticky=tk.W)
+        self.lm_lab_comment_label.grid(row=2,column=0,padx=10,pady = 15,sticky=tk.NW)
+        self.lm_lab_name_entry.grid(row=1,column=1,padx = (10,0),pady = 15,sticky=tk.NW)
+        self.lm_lab_comment_CTkTextbox.grid(row=2,column=1,padx = 10,sticky=tk.NW)
+        #============================================== Right frame=============================================================================
+        self.lm_delete_lab_button = customtkinter.CTkButton(master=lm_right_frame, text="ลบรายชื่อห้องปฏิบัติการ",font=thai_font, width =250, height=60)
+        self.lm_add_lab_button = customtkinter.CTkButton(master=lm_right_frame, text="เพิ่มรายชื่อห้องปฏิบัติการ",font=thai_font, width =250, height=60)
+   
+        self.lm_delete_lab_button.grid(row=0,column=0,sticky=tk.N,pady = (50,0))
+        self.lm_add_lab_button.grid(row=1,column=0,sticky=tk.N,pady = (17,0))
+
 
     # ============================ stock manager tab =================================
     def init_setup_pc_tab(self):
