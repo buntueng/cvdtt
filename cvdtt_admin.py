@@ -129,6 +129,84 @@ class WorkingPage(tk.Frame):
         self.init_user_manager_tab()
         self.init_lab_manager()
         self.init_experiment_manager()
+        self.init_db_manager()
+    # ============================= database manager tab =============================
+    def init_db_manager(self):
+        db_manger_frame = tk.Frame(master= self.setup_server_db_frame,bg="#FFFFFF")
+        db_manger_frame.grid(row=0,column=0)
+        treeview_style = ttk.Style()
+        treeview_style.configure("custom.Treeview", highlightthickness=10, bd=10, font=('TH Niramit AS', 17))
+        treeview_style.configure("custom.Treeview.Heading", font=('TH Niramit AS', 16,'bold'))
+        treeview_style.layout("custom.Treeview", [('custom.Treeview.treearea', {'sticky': 'nswe'})])
+        treeview_style.configure("custom.Treeview", background="#EEFFFF",fieldbackground="black", foreground="black")
+        treeview_style.map("custom.Treeview", background=[("selected", "green")])
+    #===================================== TOP FRAME =======================================
+        dm_top_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
+        dm_top_frame.grid(row=0,column=0,padx=10,pady=10,sticky=tk.W)
+    #===================================== BOTTOM LEFT FRAME ===============================
+        dm_bottom_left_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
+        dm_bottom_left_frame.grid(row=1,column=0,padx=10,pady=10,sticky=tk.W)
+    #===================================== BOTTOM RIGHT FRAME ===============================
+        dm_bottom_right_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
+        dm_bottom_right_frame.grid(row=1,column=0,padx=(640,0),pady=10,sticky=tk.N)
+    #===================================== TOP RIGHT FRAME =================================
+        dm_right_top_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
+        dm_right_top_frame.grid(row=0,column=1,padx=10,pady=10,sticky=tk.NW)
+    #===================================== BOTTOM RIGHT FRAME ==============================
+        dm_right_bottom_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
+        dm_right_bottom_frame.grid(row=1,column=1,padx=10,pady=10,sticky=tk.NW)
+    #===================================== DM TREE VIEW ====================================
+        dm_experiment_summary_treeview_colum = ("order_number","table_name", "field_name","nullable","key","default","extra")
+        self.dm_experiment_summary_treeview = ttk.Treeview(master=dm_top_frame, columns=dm_experiment_summary_treeview_colum, style="custom.Treeview", show='headings',height=20,selectmode="browse",)
+        self.dm_experiment_summary_treeview.heading("order_number",text="ลำดับ")
+        self.dm_experiment_summary_treeview.column("order_number", minwidth=10, width=100,)
+        self.dm_experiment_summary_treeview.heading("table_name",text="ชื่อตาราง")
+        self.dm_experiment_summary_treeview.column("table_name", minwidth=10, width=250,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.heading("field_name",text="ชื่อ Field")
+        self.dm_experiment_summary_treeview.column("field_name", minwidth=10, width=250,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.heading("nullable",text="Null")
+        self.dm_experiment_summary_treeview.column("nullable", minwidth=10, width=80,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.heading("key",text="Key")
+        self.dm_experiment_summary_treeview.column("key", minwidth=10, width=130,stretch=tk.NO) 
+        self.dm_experiment_summary_treeview.heading("default",text="Default")
+        self.dm_experiment_summary_treeview.column("default", minwidth=10, width=250,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.heading("extra",text="Extra")
+        self.dm_experiment_summary_treeview.column("extra", minwidth=10, width=270,stretch=tk.NO)
+        self.dm_experiment_summary_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
+
+        self.dm_experiment_summary_CTklabel = customtkinter.CTkLabel(master=dm_top_frame,text="ตารางในฐานข้อมูล",bg_color="#FFFFFF",font=("TH Niramit AS", 23,'bold'))
+        self.dm_experiment_summary_CTklabel.grid(row=0,column=0,pady=(5,10),sticky=tk.W)
+    #==================================== DM BOTTOM LEFT FRAME =============================
+        dm_query_list_treeview_colum = ("order_number","query",)
+        self.dm_query_list_treeview = ttk.Treeview(master=dm_bottom_left_frame, columns=dm_query_list_treeview_colum, style="custom.Treeview", show='headings',height=12,selectmode="browse",)
+        self.dm_query_list_treeview.heading("order_number",text="ลำดับ")
+        self.dm_query_list_treeview.column("order_number", minwidth=10, width=130,)
+        self.dm_query_list_treeview.heading("query",text="รายการ Query ที่บันทึกไว้")
+        self.dm_query_list_treeview.column("query", minwidth=10, width=500,)
+        self.dm_query_list_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
+    #==================================== DM BOTTOM RIGHT FRAME ============================
+        self.dm_query_name_label = customtkinter.CTkLabel(master=dm_bottom_right_frame,text="ชื่อ Query",bg_color="#FFFFFF",font=thai_font)
+        self.dm_query_message_label = customtkinter.CTkLabel(master=dm_bottom_right_frame,text="คำสั่ง Query",bg_color="#FFFFFF",font=thai_font)
+        self.dm_query_name_entry = customtkinter.CTkEntry(master=dm_bottom_right_frame,width=550,font=thai_font)
+        self.dm_query_message_CTkTextbox = customtkinter.CTkTextbox(master=dm_bottom_right_frame,width=550,height=220,font=thai_font)
+
+        self.dm_query_name_label.grid(row=0,column=0,padx=(10,0),sticky=tk.W)
+        self.dm_query_message_label.grid(row=1,column=0,padx=(10,0),pady=(20,0),sticky=tk.NW)
+        self.dm_query_name_entry.grid(row=0,column=1,padx=(20,0),sticky=tk.W)
+        self.dm_query_message_CTkTextbox.grid(row=1,column=1,padx=(20,0),pady=(20,5),sticky=tk.NW)
+    #==================================== TOP RIGHT FRAME ===================================
+
+        self.dm_delete_table_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ลบตาราง",font=thai_font, width =250, height=60)
+        self.dm_clear_all_data_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ล้างข้อมูล",font=thai_font, width =250, height=60)
+
+        self.dm_delete_table_button.grid(row=0,column=0,pady=(40,20),sticky=tk.N,)
+        self.dm_clear_all_data_button.grid(row=1,column=0,sticky=tk.N,)
+    #==================================== TOP RIGHT FRAME ===================================
+        self.dm_execution_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="Execute",font=thai_font, width =250, height=60)
+        self.dm_save_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="บันทึก Query",font=thai_font, width =250, height=60)
+
+        self.dm_execution_button.grid(row=0,column=0,pady=(0,20),sticky=tk.N,)
+        self.dm_save_query_button.grid(row=1,column=0,sticky=tk.N,)
     # ============================ experiment manager tab ==========================
     def init_experiment_manager(self):
         em_frame = tk.Frame(self.experiment_manager_frame,bg='#FFFFFF',border=0)
