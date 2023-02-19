@@ -124,6 +124,7 @@ class WorkingPage(tk.Frame):
         self.notebook.grid(row=0, column=0,sticky='we')
         self.notebook.bind('<<NotebookTabChanged>>',self.process_notebook_tab_change)
 
+        logging.debug("running app")
         self.init_job_manager_tab()
         self.init_user_manager_tab()
         self.init_lab_manager()
