@@ -236,20 +236,22 @@ class WorkingPage(tk.Frame):
         self.dm_query_message_CTkTextbox.grid(row=1,column=1,padx=(20,0),pady=(20,5),sticky=tk.NW)
     #==================================== TOP RIGHT FRAME ===================================
 
-        self.dm_delete_table_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ลบตาราง",font=thai_font, width =200, height=60)
-        self.dm_clear_all_data_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ล้างข้อมูล",font=thai_font, width =200, height=60)
+        self.dm_delete_table_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ลบตาราง",font=thai_font, width =170, height=40,command=self.dm_delete_table_button_pressed)
+        self.dm_clear_all_data_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ล้างข้อมูล",font=thai_font, width =170, height=40,command=self.dm_clear_all_data_button_pressed)
 
         self.dm_delete_table_button.grid(row=0,column=0,pady=(40,20),sticky=tk.N,)
         self.dm_clear_all_data_button.grid(row=1,column=0,sticky=tk.N,)
     #==================================== TOP RIGHT FRAME ===================================
-        self.dm_execution_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="สร้างตาราง",font=thai_font, width =200, height=60)
-        self.dm_save_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="บันทึก Query",font=thai_font, width =200, height=60,command=self.dm_save_query_button_pressed)
+        self.dm_execution_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="สร้างตาราง",font=thai_font, width =170, height=40,command=self.dm_execution_button_pressed)
+        self.dm_load_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="แก้ไข Query",font=thai_font, width =170, height=40,command=self.dm_load_query_button_pressed)
+        self.dm_save_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="บันทึก Query",font=thai_font, width =170, height=40,command=self.dm_save_query_button_pressed)
 
-        self.dm_delete_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="ลบ query ในลิสต์",font=thai_font, width =200, height=60,command=self.dm_delete_query_button_pressed)
+        self.dm_delete_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="ลบ query ในลิสต์",font=thai_font, width =170, height=40,command=self.dm_delete_query_button_pressed)
 
-        self.dm_execution_button.grid(row=0,column=0,pady=(0,20),sticky=tk.N,)
-        self.dm_save_query_button.grid(row=1,column=0,sticky=tk.N,)
-        self.dm_delete_query_button.grid(row=2,column=0,sticky=tk.N,pady=20)
+        self.dm_execution_button.grid(row=0,column=0,sticky=tk.N,)
+        self.dm_load_query_button.grid(row=1,column=0,sticky=tk.N,pady=20)
+        self.dm_save_query_button.grid(row=2,column=0,sticky=tk.N,)
+        self.dm_delete_query_button.grid(row=3,column=0,sticky=tk.N,pady=20)
     # ============================ experiment manager tab ==========================
     def init_experiment_manager(self):
         em_frame = tk.Frame(self.experiment_manager_frame,bg='#FFFFFF',border=0)
@@ -574,19 +576,123 @@ class WorkingPage(tk.Frame):
         pass
         
     # ============================================ events handles =========================================
+    def dm_load_query_button_pressed(self):
+        if self.dm_query_list_treeview.focus() != "":
+            dm_selected_query_item = self.dm_query_list_treeview.selection()[0]
+            query_key = self.dm_query_list_treeview.item(dm_selected_query_item)['values'][1]
+
+            query_dictionary_from_yml = None
+            query_dictionary_from_yml = read_yml(yml_query_path)
+            if query_dictionary_from_yml != None:
+                # clear query name and query string
+                self.dm_query_name_entry.delete(0,tk.END)
+                self.dm_query_message_CTkTextbox.delete("1.0","end-1c")
+
+                self.dm_query_name_entry.insert(tk.END,query_key)
+                self.dm_query_message_CTkTextbox.insert(tk.END,query_dictionary_from_yml[query_key])
+
+    def dm_execution_button_pressed(self):
+        if self.dm_query_list_treeview.focus() != "":
+            dm_selected_query_item = self.dm_query_list_treeview.selection()[0]
+            query_key = self.dm_query_list_treeview.item(dm_selected_query_item)['values'][1]
+
+            query_dictionary_from_yml = None
+            query_dictionary_from_yml = read_yml(yml_query_path)
+            if query_dictionary_from_yml != None:
+                # create connection and add detail to treeview
+                server_host = self.controller.configuration_params['server_detail']['address']
+                server_port = self.controller.configuration_params['server_detail']['port']
+                database_name = self.controller.configuration_params['server_detail']['database']
+                user_account = self.controller.configuration_params['admin_login']['username']
+                user_password = self.controller.configuration_params['admin_login']['password']
+
+                try:
+                    main_db = mysql.connector.connect(  host = server_host,
+                                                        port = int(server_port),
+                                                        database = database_name,
+                                                        user = user_account,
+                                                        password = user_password     )
+                    main_cursor = main_db.cursor()
+                    query_string = query_dictionary_from_yml[query_key]
+                    main_cursor.execute(query_string)
+                    main_db.commit()
+                    main_cursor.close()
+                    main_db.close()
+
+                    self.read_database_tables_from_server_to_dm()
+                except Exception as Ex:
+                    logging.error("Error: %s"%(Ex))
+
+    def dm_clear_all_data_button_pressed(self):
+        if self.dm_table_summary_treeview.focus() != "":
+            dm_selected_table_item = self.dm_table_summary_treeview.selection()[0]
+            table_key = self.dm_table_summary_treeview.item(dm_selected_table_item)['values'][1]
+            if table_key != "":
+                # create connection and add detail to treeview
+                server_host = self.controller.configuration_params['server_detail']['address']
+                server_port = self.controller.configuration_params['server_detail']['port']
+                database_name = self.controller.configuration_params['server_detail']['database']
+                user_account = self.controller.configuration_params['admin_login']['username']
+                user_password = self.controller.configuration_params['admin_login']['password']
+
+                try:
+                    main_db = mysql.connector.connect(  host = server_host,
+                                                        port = int(server_port),
+                                                        database = database_name,
+                                                        user = user_account,
+                                                        password = user_password     )
+                    main_cursor = main_db.cursor()
+                    query_string = "TRUNCATE TABLE " + table_key
+                    main_cursor.execute(query_string)
+                    main_cursor.close()
+                    main_db.close()
+                except Exception as Ex:
+                    logging.error("Error: %s"%(Ex))
+                #======== reload table ==========================
+
+    def dm_delete_table_button_pressed(self):
+        if self.dm_table_summary_treeview.focus() != "":
+            dm_selected_table_item = self.dm_table_summary_treeview.selection()[0]
+            table_key = self.dm_table_summary_treeview.item(dm_selected_table_item)['values'][1]
+            if table_key != "":
+                # create connection and add detail to treeview
+                server_host = self.controller.configuration_params['server_detail']['address']
+                server_port = self.controller.configuration_params['server_detail']['port']
+                database_name = self.controller.configuration_params['server_detail']['database']
+                user_account = self.controller.configuration_params['admin_login']['username']
+                user_password = self.controller.configuration_params['admin_login']['password']
+
+                try:
+                    main_db = mysql.connector.connect(  host = server_host,
+                                                        port = int(server_port),
+                                                        database = database_name,
+                                                        user = user_account,
+                                                        password = user_password     )
+                    main_cursor = main_db.cursor()
+                    query_string = "DROP TABLE IF EXISTS " + table_key
+                    main_cursor.execute(query_string)
+                    main_cursor.close()
+                    main_db.close()
+                    #======== reload table ==========================
+                    self.read_database_tables_from_server_to_dm()
+                except Exception as Ex:
+                    logging.error("Error: %s"%(Ex))
+            
+
     def dm_delete_query_button_pressed(self):
-        # dm_selected_query_inndex = self.dm_query_list_treeview.index(self.dm_query_list_treeview.focus())
-        dm_selected_query_item = self.dm_query_list_treeview.selection()[0]
-        query_key = self.dm_query_list_treeview.item(dm_selected_query_item)['values'][1]
+        if self.dm_query_list_treeview.focus() != "":
+            # dm_selected_query_inndex = self.dm_query_list_treeview.index(self.dm_query_list_treeview.focus())
+            dm_selected_query_item = self.dm_query_list_treeview.selection()[0]
+            query_key = self.dm_query_list_treeview.item(dm_selected_query_item)['values'][1]
 
-        query_dictionary_from_yml = None
-        query_dictionary_from_yml = read_yml(yml_query_path)
-        if query_dictionary_from_yml == None:
-            query_dictionary_from_yml = {}
-        query_dictionary_from_yml.pop(query_key, None)
-        write_yml(query_dictionary_from_yml,yml_query_path)
+            query_dictionary_from_yml = None
+            query_dictionary_from_yml = read_yml(yml_query_path)
+            if query_dictionary_from_yml == None:
+                query_dictionary_from_yml = {}
+            query_dictionary_from_yml.pop(query_key, None)
+            write_yml(query_dictionary_from_yml,yml_query_path)
 
-        self.update_query_from_yml()
+            self.update_query_from_yml()
 
     def dm_save_query_button_pressed(self):
         query_dictionary_from_yml = None
