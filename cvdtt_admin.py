@@ -29,6 +29,11 @@ def read_yml(file_path):
         with open(file_path) as yml_file:
             yml_params = yaml.load(yml_file, Loader=SafeLoader)
     return yml_params
+
+def write_yml(py_obj,file_path):
+    with open(file_path, 'w',) as obj_file :
+        yaml.dump(py_obj,obj_file,sort_keys=False) 
+
 #===================== setup logging module =========================================================================
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -187,25 +192,25 @@ class WorkingPage(tk.Frame):
         dm_right_bottom_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
         dm_right_bottom_frame.grid(row=1,column=1,padx=10,pady=10,sticky=tk.NW)
     #===================================== DM TREE VIEW ====================================
-        dm_experiment_summary_treeview_colum = ("order_number","table_name", "field_name","type","nullable","key","default","extra")
-        self.dm_experiment_summary_treeview = ttk.Treeview(master=dm_top_frame, columns=dm_experiment_summary_treeview_colum, style="custom.Treeview", show='headings',height=20,selectmode="browse",)
-        self.dm_experiment_summary_treeview.heading("order_number",text="ลำดับ")
-        self.dm_experiment_summary_treeview.column("order_number", width=100,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.heading("table_name",text="ชื่อตาราง")
-        self.dm_experiment_summary_treeview.column("table_name", width=200,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.heading("field_name",text="ชื่อ Field")
-        self.dm_experiment_summary_treeview.column("field_name", width=200,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.heading("type",text="data type")
-        self.dm_experiment_summary_treeview.column("type", width=100,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.heading("nullable",text="Null")
-        self.dm_experiment_summary_treeview.column("nullable", width=80,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.heading("key",text="Key")
-        self.dm_experiment_summary_treeview.column("key", width=130,anchor=tk.CENTER) 
-        self.dm_experiment_summary_treeview.heading("default",text="Default")
-        self.dm_experiment_summary_treeview.column("default", width=250,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.heading("extra",text="Extra")
-        self.dm_experiment_summary_treeview.column("extra", width=200,anchor=tk.CENTER)
-        self.dm_experiment_summary_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
+        dm_table_summary_treeview_colum = ("order_number","table_name", "field_name","type","nullable","key","default","extra")
+        self.dm_table_summary_treeview = ttk.Treeview(master=dm_top_frame, columns=dm_table_summary_treeview_colum, style="custom.Treeview", show='headings',height=15,selectmode="browse",)
+        self.dm_table_summary_treeview.heading("order_number",text="ลำดับ")
+        self.dm_table_summary_treeview.column("order_number", width=100,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.heading("table_name",text="ชื่อตาราง")
+        self.dm_table_summary_treeview.column("table_name", width=200,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.heading("field_name",text="ชื่อ Field")
+        self.dm_table_summary_treeview.column("field_name", width=200,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.heading("type",text="data type")
+        self.dm_table_summary_treeview.column("type", width=100,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.heading("nullable",text="Null")
+        self.dm_table_summary_treeview.column("nullable", width=80,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.heading("key",text="Key")
+        self.dm_table_summary_treeview.column("key", width=130,anchor=tk.CENTER) 
+        self.dm_table_summary_treeview.heading("default",text="Default")
+        self.dm_table_summary_treeview.column("default", width=250,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.heading("extra",text="Extra")
+        self.dm_table_summary_treeview.column("extra", width=200,anchor=tk.CENTER)
+        self.dm_table_summary_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
 
         self.dm_experiment_summary_CTklabel = customtkinter.CTkLabel(master=dm_top_frame,text="ตารางในฐานข้อมูล",bg_color="#FFFFFF",font=("TH Niramit AS", 23,'bold'))
         self.dm_experiment_summary_CTklabel.grid(row=0,column=0,pady=(5,10),sticky=tk.W)
@@ -236,7 +241,7 @@ class WorkingPage(tk.Frame):
         self.dm_clear_all_data_button.grid(row=1,column=0,sticky=tk.N,)
     #==================================== TOP RIGHT FRAME ===================================
         self.dm_execution_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="Execute",font=thai_font, width =250, height=60)
-        self.dm_save_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="บันทึก Query",font=thai_font, width =250, height=60)
+        self.dm_save_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="บันทึก Query",font=thai_font, width =250, height=60,command=self.dm_save_query_button_pressed)
 
         self.dm_execution_button.grid(row=0,column=0,pady=(0,20),sticky=tk.N,)
         self.dm_save_query_button.grid(row=1,column=0,sticky=tk.N,)
@@ -564,6 +569,24 @@ class WorkingPage(tk.Frame):
         pass
         
     # ============================================ events handles =========================================
+    def dm_save_query_button_pressed(self):
+        # read query dictionary
+        if self.dm_query_name_entry.get() != "":
+            query_dictionary_from_yml = read_yml(yml_query_path)
+            if query_dictionary_from_yml == None:
+                query_dictionary_from_yml = {}
+            temp_query_name = self.dm_query_name_entry.get()
+            temp_query_string = self.dm_query_message_CTkTextbox.get("1.0", "end-1c")
+
+            if temp_query_name in query_dictionary_from_yml.keys():
+                query_dictionary_from_yml.update({temp_query_name:temp_query_string})
+            else:
+                query_dictionary_from_yml[temp_query_name] = temp_query_string
+            
+            write_yml(query_dictionary_from_yml,yml_query_path)
+            #=============== update treeview ==================
+            self.update_query_from_yml(yml_query_path)
+
     def process_notebook_tab_change(self,event):
         #=============== tabs should order as defined in dictionary ============================
         active_tab_index = self.notebook.index(self.notebook.select())
@@ -578,14 +601,26 @@ class WorkingPage(tk.Frame):
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Stock Manager'):
             logging.debug("Stock manager tab is activated")
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Setup Server Database'):
-            logging.debug("Setup Server Database tab is activated")
-            self.read_database_tables_from_server()
+            # logging.debug("Setup Server Database tab is activated")
+            self.read_database_tables_from_server_to_dm()
+            self.update_query_from_yml(yml_query_path)
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Setup PC'):
             logging.debug("Setup PC tab is activated")
         elif active_tab_index == list(self.notebook_tab_dictionary.keys()).index('Logout'):
             logging.debug("Logout tab is activated")
 
-    def read_database_tables_from_server(self):
+    def update_query_from_yml(self,yml_path):
+        query_dictionary_from_yml = read_yml(yml_path)
+        if query_dictionary_from_yml != None:
+            for item in self.dm_query_list_treeview.get_children():
+                self.dm_query_list_treeview.delete(item)
+            for query_index,available_query_name in enumerate(query_dictionary_from_yml):
+                self.dm_query_list_treeview.insert("",'end',values=(query_index+1,available_query_name))
+            
+    def read_database_tables_from_server_to_dm(self):
+        # clear treeview
+        for item in self.dm_table_summary_treeview.get_children():
+            self.dm_table_summary_treeview.delete(item)
         # create connection and add detail to treeview
         server_host = self.controller.configuration_params['server_detail']['address']
         server_port = self.controller.configuration_params['server_detail']['port']
@@ -610,9 +645,9 @@ class WorkingPage(tk.Frame):
                 current_table_detail = main_cursor.fetchall()
                 for field_index,field_detail in enumerate(current_table_detail):
                     if field_index == 0:
-                        self.dm_experiment_summary_treeview.insert("",'end',values=(str(order_index),current_table,field_detail[0],field_detail[1],field_detail[2],field_detail[3],field_detail[4],field_detail[5]))
+                        self.dm_table_summary_treeview.insert("",'end',values=(str(order_index+1),current_table,field_detail[0],field_detail[1],field_detail[2],field_detail[3],field_detail[4],field_detail[5]))
                     else:
-                        self.dm_experiment_summary_treeview.insert("",'end',values=("","",field_detail[0],field_detail[1],field_detail[2],field_detail[3],field_detail[4],field_detail[5]))
+                        self.dm_table_summary_treeview.insert("",'end',values=("","",field_detail[0],field_detail[1],field_detail[2],field_detail[3],field_detail[4],field_detail[5]))
             main_cursor.close()
             main_db.close()
         except Exception as Ex:
