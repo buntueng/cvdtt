@@ -180,22 +180,25 @@ class WorkingPage(tk.Frame):
         treeview_style.map("custom.Treeview", background=[("selected", "green")])
     #===================================== TOP FRAME =======================================
         dm_top_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
-        dm_top_frame.grid(row=0,column=0,padx=10,pady=10,sticky=tk.W)
+        dm_top_frame.grid(row=0,column=0,padx=10,columnspan=2,pady=10,sticky=tk.W)
     #===================================== BOTTOM LEFT FRAME ===============================
         dm_bottom_left_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
         dm_bottom_left_frame.grid(row=1,column=0,padx=10,pady=10,sticky=tk.W)
     #===================================== BOTTOM RIGHT FRAME ===============================
         dm_bottom_right_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
-        dm_bottom_right_frame.grid(row=1,column=0,padx=(640,0),pady=10,sticky=tk.N)
+        dm_bottom_right_frame.grid(row=1,column=1,padx=(40,0),pady=10,sticky=tk.N)
     #===================================== TOP RIGHT FRAME =================================
         dm_right_top_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
-        dm_right_top_frame.grid(row=0,column=1,padx=10,pady=10,sticky=tk.NW)
+        dm_right_top_frame.grid(row=0,column=2,padx=10,pady=10,sticky=tk.NW)
     #===================================== BOTTOM RIGHT FRAME ==============================
         dm_right_bottom_frame = tk.Frame(db_manger_frame,bg="#FFFFFF")
-        dm_right_bottom_frame.grid(row=1,column=1,padx=10,pady=10,sticky=tk.NW)
+        dm_right_bottom_frame.grid(row=1,column=2,padx=10,pady=10,sticky=tk.NW)
     #===================================== DM TREE VIEW ====================================
+        dm_table_summary_treeview_scrollbar = ttk.Scrollbar(master=dm_top_frame,orient='vertical',)
+        dm_table_summary_treeview_scrollbar.grid(row=1,column=6,sticky=tk.NS)
+
         dm_table_summary_treeview_colum = ("order_number","table_name", "field_name","type","nullable","key","default","extra")
-        self.dm_table_summary_treeview = ttk.Treeview(master=dm_top_frame, columns=dm_table_summary_treeview_colum, style="custom.Treeview", show='headings',height=15,selectmode="browse",)
+        self.dm_table_summary_treeview = ttk.Treeview(master=dm_top_frame, columns=dm_table_summary_treeview_colum, style="custom.Treeview", show='headings',height=15)
         self.dm_table_summary_treeview.heading("order_number",text="ลำดับ")
         self.dm_table_summary_treeview.column("order_number", width=100,anchor=tk.CENTER)
         self.dm_table_summary_treeview.heading("table_name",text="ชื่อตาราง")
@@ -214,6 +217,10 @@ class WorkingPage(tk.Frame):
         self.dm_table_summary_treeview.column("extra", width=200,anchor=tk.CENTER)
         self.dm_table_summary_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
 
+        self.dm_table_summary_treeview['yscrollcommand'] = dm_table_summary_treeview_scrollbar.set
+
+        dm_table_summary_treeview_scrollbar.config( command = self.dm_table_summary_treeview.yview )
+
         self.dm_experiment_summary_CTklabel = customtkinter.CTkLabel(master=dm_top_frame,text="ตารางในฐานข้อมูล",bg_color="#FFFFFF",font=("TH Niramit AS", 23,'bold'))
         self.dm_experiment_summary_CTklabel.grid(row=0,column=0,pady=(5,10),sticky=tk.W)
     #==================================== DM BOTTOM LEFT FRAME =============================
@@ -222,30 +229,27 @@ class WorkingPage(tk.Frame):
         self.dm_query_list_treeview.heading("order_number",text="ลำดับ")
         self.dm_query_list_treeview.column("order_number", minwidth=10, width=130,)
         self.dm_query_list_treeview.heading("query",text="รายการ Query ที่บันทึกไว้")
-        self.dm_query_list_treeview.column("query", minwidth=10, width=500,)
+        self.dm_query_list_treeview.column("query", minwidth=10, width=300,)
         self.dm_query_list_treeview.grid(row=1,column=0,sticky=tk.W,columnspan=5)
     #==================================== DM BOTTOM RIGHT FRAME ============================
         self.dm_query_name_label = customtkinter.CTkLabel(master=dm_bottom_right_frame,text="ชื่อ Query",bg_color="#FFFFFF",font=thai_font)
         self.dm_query_message_label = customtkinter.CTkLabel(master=dm_bottom_right_frame,text="คำสั่ง Query",bg_color="#FFFFFF",font=thai_font)
-        self.dm_query_name_entry = customtkinter.CTkEntry(master=dm_bottom_right_frame,width=550,font=thai_font)
-        self.dm_query_message_CTkTextbox = customtkinter.CTkTextbox(master=dm_bottom_right_frame,width=550,height=220,font=thai_font)
+        self.dm_query_name_entry = customtkinter.CTkEntry(master=dm_bottom_right_frame,width=650,font=thai_font)
+        self.dm_query_message_CTkTextbox = customtkinter.CTkTextbox(master=dm_bottom_right_frame,width=650,height=220,font=thai_font)
 
         self.dm_query_name_label.grid(row=0,column=0,padx=(10,0),sticky=tk.W)
         self.dm_query_message_label.grid(row=1,column=0,padx=(10,0),pady=(20,0),sticky=tk.NW)
         self.dm_query_name_entry.grid(row=0,column=1,padx=(20,0),sticky=tk.W)
         self.dm_query_message_CTkTextbox.grid(row=1,column=1,padx=(20,0),pady=(20,5),sticky=tk.NW)
     #==================================== TOP RIGHT FRAME ===================================
-
         self.dm_delete_table_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ลบตาราง",font=thai_font, width =170, height=40,command=self.dm_delete_table_button_pressed)
         self.dm_clear_all_data_button = customtkinter.CTkButton(master=dm_right_top_frame, text="ล้างข้อมูล",font=thai_font, width =170, height=40,command=self.dm_clear_all_data_button_pressed)
-
         self.dm_delete_table_button.grid(row=0,column=0,pady=(40,20),sticky=tk.N,)
         self.dm_clear_all_data_button.grid(row=1,column=0,sticky=tk.N,)
-    #==================================== TOP RIGHT FRAME ===================================
+    #==================================== Bottom RIGHT FRAME ===================================
         self.dm_execution_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="Execute",font=thai_font, width =170, height=40,command=self.dm_execution_button_pressed)
         self.dm_load_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="แก้ไข Query",font=thai_font, width =170, height=40,command=self.dm_load_query_button_pressed)
         self.dm_save_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="บันทึก Query",font=thai_font, width =170, height=40,command=self.dm_save_query_button_pressed)
-
         self.dm_delete_query_button = customtkinter.CTkButton(master=dm_right_bottom_frame, text="ลบ query ในลิสต์",font=thai_font, width =170, height=40,command=self.dm_delete_query_button_pressed)
 
         self.dm_execution_button.grid(row=0,column=0,sticky=tk.N,)
