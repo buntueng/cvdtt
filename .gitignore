@@ -1,4 +1,4 @@
 *.log
 *.yml
-/sql/*.*
+/sql/*.sql
 
