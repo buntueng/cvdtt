@@ -414,7 +414,7 @@ class WorkingPage(tk.Frame):
         # self.um_search_result_label = customtkinter.CTkLabel(master=um_top_frame,text="ผลการค้นหา",bg_color="#FFFFFF",font=thai_font)
 
         search_user_column = ("order","name", "surname","lab_name","comment")
-        self.um_search_user_result_treeview = ttk.Treeview(master=um_top_frame, columns=search_user_column, style="custom.Treeview", show='headings',height=4,selectmode="browse")
+        self.um_search_user_result_treeview = ttk.Treeview(master=um_top_frame, columns=search_user_column, style="custom.Treeview", show='headings',height=7,selectmode="browse")
         self.um_search_user_result_treeview.heading("order", text="ลำดับที่")
         self.um_search_user_result_treeview.column("order", minwidth=0, width=50,anchor=tk.CENTER)
         self.um_search_user_result_treeview.heading("name", text="ชื่อ")
@@ -442,7 +442,7 @@ class WorkingPage(tk.Frame):
         self.um_name_label =customtkinter.CTkLabel(master=um_main_frame,text = 'ชื่อ' ,font=thai_font)
         self.um_surname_label =customtkinter.CTkLabel(master=um_main_frame,text = 'นามสกุล' ,font=thai_font)
 
-        self.um_user_name_label =customtkinter.CTkLabel(master=um_main_frame,text = 'Username' ,font=thai_font)
+        self.um_username_label =customtkinter.CTkLabel(master=um_main_frame,text = 'Username' ,font=thai_font)
         self.um_password_label =customtkinter.CTkLabel(master=um_main_frame,text = 'Password' ,font=thai_font)
         self.um_lab_name_label =customtkinter.CTkLabel(master=um_main_frame,text = 'ห้องแลป' ,font=thai_font)
         self.um_address_label =customtkinter.CTkLabel(master=um_main_frame,text = 'ที่อยู่' ,font=thai_font)
@@ -454,7 +454,7 @@ class WorkingPage(tk.Frame):
 
         self.um_name_entry = customtkinter.CTkEntry(master=um_main_frame,width=350,font=thai_font)
         self.um_surname_entry = customtkinter.CTkEntry(master=um_main_frame,width=350,font=thai_font)
-        self.um_user_name_entry = customtkinter.CTkEntry(master=um_main_frame,width=350,font=thai_font)
+        self.um_username_entry = customtkinter.CTkEntry(master=um_main_frame,width=350,font=thai_font)
         self.um_password_entry = customtkinter.CTkEntry(master=um_main_frame,width=350,font=thai_font)
         self.um_lab_name_option = customtkinter.CTkComboBox(master=um_main_frame,width=350,font=thai_font,values=["Lab1", "Lab2","Lab3"])
         self.um_address_textbox = customtkinter.CTkTextbox(master=um_main_frame,width=350,height=70,font=thai_font,border_width=2)
@@ -471,8 +471,8 @@ class WorkingPage(tk.Frame):
         self.um_surname_label.grid(row=1,column=2,padx=10,sticky=tk.NE)
         self.um_surname_entry.grid(row=1,column=3,sticky=tk.NW)
 
-        self.um_user_name_label.grid(row=2,column=0,pady=10,sticky=tk.NW)
-        self.um_user_name_entry.grid(row=2,column=1,pady=10,padx = 10,sticky=tk.NW)
+        self.um_username_label.grid(row=2,column=0,pady=10,sticky=tk.NW)
+        self.um_username_entry.grid(row=2,column=1,pady=10,padx = 10,sticky=tk.NW)
 
         self.um_password_label.grid(row=3,column=0,sticky=tk.NW)
         self.um_password_entry.grid(row=3,column=1,padx = 10,sticky=tk.NW)
@@ -499,21 +499,23 @@ class WorkingPage(tk.Frame):
         self.um_signature_label.grid(row=12,column=3,columnspan=2,sticky=tk.N)
 
         # ========= right frame ===============
-        self.um_load_infomation_button = customtkinter.CTkButton(master=um_right_frame, text="แสดงข้อมูล",font=thai_font, width =180, height=50)
-        self.um_clear_infomation_button = customtkinter.CTkButton(master=um_right_frame, text="ล้างข้อมูล",font=thai_font, width =180, height=50)
+        self.um_load_infomation_button = customtkinter.CTkButton(master=um_right_frame, text="แก้ไขข้อมูล",font=thai_font, width =180, height=50)
+        self.um_clear_infomation_button = customtkinter.CTkButton(master=um_right_frame, text="ล้างข้อมูล",font=thai_font, width =180, height=50,command=self.um_clear_infomation_button_pressed)
         self.um_clear_signature_button = customtkinter.CTkButton(master=um_right_frame, text="แก้ไขลายมือ",font=thai_font, width =180, height=50,command= lambda:self.um_signature_cavas.delete('all'))
         self.um_update_user_button = customtkinter.CTkButton(master=um_right_frame, text="ปรับปรุงข้อมูล",font=thai_font, width =180, height=50)
         self.um_add_user_button = customtkinter.CTkButton(master=um_right_frame, text="สร้าง User ใหม่",font=thai_font, width =180, height=50)
         self.um_remove_user_button = customtkinter.CTkButton(master=um_right_frame, text="ลบ User ออก",font=thai_font, width =180, height=50)
 
-        self.um_load_infomation_button.grid(row=0,column=5,sticky=tk.N,pady = (70,80))
-        self.um_clear_infomation_button.grid(row=1,column=5,sticky=tk.NW)
-        self.um_clear_signature_button.grid(row=2,column=5,sticky=tk.NW,pady=(20,70))
-        self.um_update_user_button.grid(row=3,column=5,sticky=tk.NW)
-        self.um_add_user_button.grid(row=4,column=5,sticky=tk.NW,pady=10)
-        self.um_remove_user_button.grid(row=5,column=5,sticky=tk.NW)
+        self.um_remove_user_button.grid(row=0,column=0,sticky=tk.NW,pady = (60,20))
+        self.um_load_infomation_button.grid(row=1,column=0,sticky=tk.N)
 
 
+        self.um_add_user_button.grid(row=2,column=0,sticky=tk.NW,pady = (70,0))
+        self.um_update_user_button.grid(row=3,column=0,sticky=tk.NW,pady=10)
+        self.um_clear_infomation_button.grid(row=4,column=0,sticky=tk.NW)
+        self.um_clear_signature_button.grid(row=5,column=0,sticky=tk.NW,pady=10)
+        
+        
         self.previous_x = None
         self.previous_y = None
 
@@ -580,6 +582,16 @@ class WorkingPage(tk.Frame):
         pass
         
     # ============================================ events handles =========================================
+    def um_clear_infomation_button_pressed(self):
+        self.um_user_title_entry.delete(0,tk.END)
+        self.um_name_entry.delete(0,tk.END)
+        self.um_surname_entry.delete(0,tk.END)
+        self.um_username_entry.delete(0,tk.END)
+        self.um_password_entry.delete(0,tk.END)
+        self.um_address_textbox.delete("1.0",tk.END)
+        self.um_phon_number_entry.delete(0,tk.END)
+        self.um_email_entry.delete(0,tk.END)
+
     def dm_load_query_button_pressed(self):
         if self.dm_query_list_treeview.focus() != "":
             dm_selected_query_item = self.dm_query_list_treeview.selection()[0]
@@ -645,7 +657,8 @@ class WorkingPage(tk.Frame):
                                                         port = int(server_port),
                                                         database = database_name,
                                                         user = user_account,
-                                                        password = user_password     )
+                                                        password = user_password,
+                                                        connection_timeout=2)
                     main_cursor = main_db.cursor()
                     query_string = "TRUNCATE TABLE " + table_key
                     main_cursor.execute(query_string)
@@ -672,7 +685,8 @@ class WorkingPage(tk.Frame):
                                                         port = int(server_port),
                                                         database = database_name,
                                                         user = user_account,
-                                                        password = user_password     )
+                                                        password = user_password,
+                                                        connection_timeout=2 )
                     main_cursor = main_db.cursor()
                     query_string = "DROP TABLE IF EXISTS " + table_key
                     main_cursor.execute(query_string)
@@ -769,7 +783,8 @@ class WorkingPage(tk.Frame):
                                                 port = int(server_port),
                                                 database = database_name,
                                                 user = user_account,
-                                                password = user_password     )
+                                                password = user_password,
+                                                connection_timeout=2)
             main_cursor = main_db.cursor()
             query_string = "Show tables;"
             main_cursor.execute(query_string)
